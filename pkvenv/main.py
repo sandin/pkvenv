@@ -62,6 +62,8 @@ def parse_requirements(txt):
         if "==" in line:
             tmp = line.split("==")
             if len(tmp) == 2:
+                if tmp[0] == "pkvenv":
+                    continue
                 requirements.append(tmp) # [name, version]
     return requirements
 
@@ -103,6 +105,7 @@ def find_python_bin_from_path(path):
 def parse_venv_requirements(venv_path, py_version):
     bin_path = os.path.join(venv_path, "Scripts")
     python_path = find_python_bin_from_path(bin_path)
+    print("Found python path: ", python_path)
     if not os.path.exists(python_path):
         raise ValueError("%s is not exists" % python_path)
     output = subprocess.check_output([python_path, "-m", "pip", "freeze"], cwd=bin_path)
@@ -160,6 +163,11 @@ def copy_files(files, output_path, name):
         else:
             print("[Warning] %s file is not a file or dir" % file)
     shutil.copy(os.path.join(ROOT_DIR, "launch.exe.py"), os.path.join(output_path, "%s.exe" % name))
+
+
+def zip_files(output_path, name):
+    build_path = os.path.dirname(output_path)
+    shutil.make_archive(os.path.join(build_path, name), "zip", output_path)
 
 
 def gen_launch_file(output_path, name, args):
@@ -231,7 +239,7 @@ def main():
     if "version" not in venv_configs:
         print("Error: Can not find python version is venv config file!")
         exit(-1)
-    print("Found venv configs:", venv_configs)
+    print("Found venv configs:", venv_configs, venv_path)
     py_version = get_py_version_from_str(venv_configs['version'])
     venv_requirements = parse_venv_requirements(venv_path, py_version)
     print("Found venv requirements:", venv_requirements)
@@ -242,6 +250,7 @@ def main():
 
     copy_files(include_files, output_path, name)
     gen_launch_file(output_path, name, args)
+    zip_files(output_path, name)
 
 
 
