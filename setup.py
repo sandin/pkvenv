@@ -10,7 +10,7 @@ setup(
   version=version,
   python_requires='>=3.6',
   description='Pack your Virtualenv to anywhere.',
-  url='http://gitlab.testplus.cn/sandin/pkvenv',
+  url='https://github.com/sandin/pkvenv',
   author='lds2012',
   author_email='lds2012@gmail.com',
   license='Apache License 2.0',
