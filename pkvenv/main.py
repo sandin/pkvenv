@@ -149,7 +149,7 @@ def setup_python(python_zip_file, requirements, output_path):
     print("install requirements_file", output)
 
 
-def copy_files(files, output_path, name):
+def copy_files(files, output_path, name, is_gui):
     #pkgs_path = os.path.join(output_path, "pkgs")
     pkgs_path = os.path.join(output_path, ".")
     if not os.path.exists(pkgs_path):
@@ -162,7 +162,11 @@ def copy_files(files, output_path, name):
             shutil.copytree(file, pkgs_path)
         else:
             print("[Warning] %s file is not a file or dir" % file)
-    shutil.copy(os.path.join(ROOT_DIR, "launch.exe.py"), os.path.join(output_path, "%s.exe" % name))
+
+    if is_gui:
+        shutil.copy(os.path.join(ROOT_DIR, "launch_gui.exe.py"), os.path.join(output_path, "%s.exe" % name))
+    else:
+        shutil.copy(os.path.join(ROOT_DIR, "launch.exe.py"), os.path.join(output_path, "%s.exe" % name))
 
 
 def zip_files(output_path, name):
@@ -212,6 +216,7 @@ def main():
     args = configs["entry_point"] if "entry_point" in configs else None
     venv = configs["venv"] if "venv" in configs else None
     include = configs["include"] if "include" in configs else None
+    gui = bool(configs["gui"]) if "gui" in configs else False
     if name is None:
         print("Error: `name` is missing in config file!")
         exit(-1)
@@ -248,7 +253,7 @@ def main():
     print("Fetch embed python:", embed_python_zip_file)
     setup_python(embed_python_zip_file, venv_requirements, output_path)
 
-    copy_files(include_files, output_path, name)
+    copy_files(include_files, output_path, name, gui)
     gen_launch_file(output_path, name, args)
     zip_files(output_path, name)
 
