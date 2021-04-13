@@ -22,7 +22,7 @@ pkvenv.json
 ```
 {
     "name": "Application Name",
-    "entry_point": "app.py",
+    "entry_point": "app:main",
     "venv": "./venv",
     "include" : [
         "app.py",
