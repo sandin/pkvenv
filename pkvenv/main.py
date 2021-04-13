@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from . import __version__
 
+ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 CONFIG_FILE_NAME = "pkvenv.json"
 
 def get_cache_dir():
@@ -145,7 +146,7 @@ def setup_python(python_zip_file, requirements, output_path):
     print("install requirements_file", output)
 
 
-def copy_files(files, output_path):
+def copy_files(files, output_path, name):
     #pkgs_path = os.path.join(output_path, "pkgs")
     pkgs_path = os.path.join(output_path, ".")
     if not os.path.exists(pkgs_path):
@@ -158,12 +159,20 @@ def copy_files(files, output_path):
             shutil.copytree(file, pkgs_path)
         else:
             print("[Warning] %s file is not a file or dir" % file)
+    shutil.copy(os.path.join(ROOT_DIR, "launch.exe.py"), os.path.join(output_path, "%s.exe" % name))
 
 
 def gen_launch_file(output_path, name, args):
-    launch_file = os.path.join(output_path, "%s.bat" % name)
-    with open(launch_file, "w") as f:
-        f.write("Python\python.exe " + args)
+    tmp = args.split(":")
+    module_name = tmp[0]
+    function_name = tmp[1]
+
+    launch_script_file = os.path.join(output_path, "app-script.py")
+    with open(launch_script_file, "w") as f:
+        f.write("import %s%s" % (module_name, os.linesep))
+        f.write("%s.%s()%s" % (module_name, function_name, os.linesep))
+
+
 
 def main():
     print("pkvenv %s" % __version__)
@@ -192,7 +201,7 @@ def main():
         exit(-1)
 
     name = configs["name"] if "name" in configs else None
-    args = configs["args"] if "args" in configs else None
+    args = configs["entry_point"] if "entry_point" in configs else None
     venv = configs["venv"] if "venv" in configs else None
     include = configs["include"] if "include" in configs else None
     if name is None:
@@ -231,7 +240,7 @@ def main():
     print("Fetch embed python:", embed_python_zip_file)
     setup_python(embed_python_zip_file, venv_requirements, output_path)
 
-    copy_files(include_files, output_path)
+    copy_files(include_files, output_path, name)
     gen_launch_file(output_path, name, args)
 
 

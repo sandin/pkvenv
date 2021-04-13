@@ -18,7 +18,7 @@ setup(
   packages=find_namespace_packages(include=['pkvenv.*', "pkvenv"]),
   entry_points = {
       'console_scripts': [
-          'pkvenv: pkvenv:main'
+          'pkvenv = pkvenv.main:main'
       ]
   },
   install_requires=[
