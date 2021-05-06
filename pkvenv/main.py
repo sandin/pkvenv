@@ -151,7 +151,8 @@ def setup_python(python_zip_file, requirements, output_path):
 
 def copy_files(files, output_path, name, is_gui):
     #pkgs_path = os.path.join(output_path, "pkgs")
-    pkgs_path = os.path.join(output_path, ".")
+    #pkgs_path = os.path.join(output_path, ".")
+    pkgs_path = output_path
     if not os.path.exists(pkgs_path):
         os.mkdir(pkgs_path)
 
@@ -159,7 +160,7 @@ def copy_files(files, output_path, name, is_gui):
         if os.path.isfile(file):
             shutil.copy(file, pkgs_path)
         elif os.path.isdir(file):
-            shutil.copytree(file, pkgs_path)
+            shutil.copytree(file, os.path.join(pkgs_path, os.path.basename(file)))
         else:
             print("[Warning] %s file is not a file or dir" % file)
 
