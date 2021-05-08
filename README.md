@@ -27,7 +27,7 @@ pkvenv.json
     "gui": false,
     "include" : [
         "app.py",
-        "index.html"
+        "index.html",
         "res"
     ]
 }
