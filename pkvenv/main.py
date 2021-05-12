@@ -28,13 +28,26 @@ def download_file(url, output):
                 f.write(chunk)
 
 
+def get_embed_python_url(py_version_str, os_arch = "amd64"):
+    if py_version_str == "3.7.2":
+        filename = f"python-3.7.2.post1-embed-{os_arch}.zip"
+    elif py_version_str == "3.7.3":
+        filename = f"python-3.7.3rc1-embed-{os_arch}.zip"
+    elif py_version_str == "3.7.4":
+        filename = f"python-3.7.4rc2-embed-{os_arch}.zip"
+    # TODO:
+    else:
+        filename = f"python-{py_version_str}-embed-{os_arch}.zip"
+    url = f"https://www.python.org/ftp/python/{py_version_str}/{filename}"
+    return filename, url
+
+
 def fetch_embeddable_python(py_version_str, os_arch = "amd64"):
     # eg: https://www.python.org/ftp/python/3.9.2/python-3.9.2-embed-amd64.zip
     cache_dir = get_cache_dir()
-    filename = f"python-{py_version_str}-embed-{os_arch}.zip"
+    filename, url = get_embed_python_url(py_version_str, os_arch)
     cache_file = os.path.join(cache_dir, filename)
     if not os.path.exists(cache_file):
-        url = f"https://www.python.org/ftp/python/{py_version_str}/{filename}"
         print("Downloading %s" % url)
         download_file(url, cache_file)
         print("Download finish %s" % cache_file)
