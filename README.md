@@ -1,6 +1,6 @@
 # PKVENV
 
-将Python Venv环境整体打包成EXE。
+将Python Venv环境整体打包成EXE。（不支持virtualenv，请使用python -m venv venv）
 
 # Install
 
