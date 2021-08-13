@@ -72,28 +72,17 @@ def parse_requirements(txt):
     requirements = []
     for line in txt.split("\n"):
         line = line.strip()
-        if "==" in line:
-            tmp = line.split("==")
-            if len(tmp) == 2:
-                if tmp[0] == "pkvenv":
-                    continue
-                requirements.append(tmp)  # [name, version]
-        elif line.startswith("-e "):
-            tmp = line.split(" ")
-            if len(tmp) == 2:
-                requirements.append(tmp)  # [name, version]
+        # TODO: -e安装的库 打包后不能正常使用
+        if "==" in line and "pkvenv" in line:
+            continue
+        requirements.append(line)
     return requirements
 
 
 def write_requirements_file(requirements, output_file):
     with open(output_file, "w") as f:
-        for item in requirements:
-            f.write(item[0])
-            if "-e" == item[0]:
-                f.write(" ")
-            else:
-                f.write("==")
-            f.write(item[1])
+        for line in requirements:
+            f.write(line)
             f.write(os.linesep)
 
 
