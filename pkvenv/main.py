@@ -104,9 +104,10 @@ def get_new_requirements(venv_path, output_path, py_version):
     with open(new_requirements_file, "w") as f:
         for line in output.decode("utf-8").split("\n"):
             line = line.strip()
-            # TODO: -e安装的库 打包后不能正常使用
-            if "==" in line and "pkvenv" in line:
+            if "pkvenv" in line:
                 continue  # 去除掉pkvenv本身
+            if line.startswith("-e "):
+                line = line[3:]  # -e安装的包改为非editable安装
             f.write(line)
             f.write(os.linesep)
     return new_requirements_file
