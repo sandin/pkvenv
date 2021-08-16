@@ -68,24 +68,6 @@ def parse_venv_configs(venv_path):
     return configs
 
 
-def parse_requirements(txt):
-    requirements = []
-    for line in txt.split("\n"):
-        line = line.strip()
-        # TODO: -e安装的库 打包后不能正常使用
-        if "==" in line and "pkvenv" in line:
-            continue
-        requirements.append(line)
-    return requirements
-
-
-def write_requirements_file(requirements, output_file):
-    with open(output_file, "w") as f:
-        for line in requirements:
-            f.write(line)
-            f.write(os.linesep)
-
-
 def get_py_version_from_str(py_version_str):
     if "." in py_version_str:
         versions = py_version_str.split(".")
@@ -111,18 +93,26 @@ def find_python_bin_from_path(path):
     return python_path
 
 
-def parse_venv_requirements(venv_path, py_version):
+def get_new_requirements(venv_path, output_path, py_version):
     bin_path = os.path.join(venv_path, "Scripts")
     python_path = find_python_bin_from_path(bin_path)
     print("Found python path: ", python_path)
     if not os.path.exists(python_path):
         raise ValueError("%s is not exists" % python_path)
     output = subprocess.check_output([python_path, "-m", "pip", "freeze"], cwd=bin_path)
-    return parse_requirements(output.decode("utf-8"))
+    new_requirements_file = os.path.join(output_path, "requirements.txt")
+    with open(new_requirements_file, "w") as f:
+        for line in output.decode("utf-8").split("\n"):
+            line = line.strip()
+            # TODO: -e安装的库 打包后不能正常使用
+            if "==" in line and "pkvenv" in line:
+                continue  # 去除掉pkvenv本身
+            f.write(line)
+            f.write(os.linesep)
+    return new_requirements_file
 
 
-
-def setup_python(python_zip_file, requirements, output_path):
+def setup_python(python_zip_file, requirements_file, output_path):
     bin_path = os.path.join(output_path, "Python")
     shutil.unpack_archive(python_zip_file, bin_path)
     found_python_path_file = False
@@ -152,8 +142,6 @@ def setup_python(python_zip_file, requirements, output_path):
     output = subprocess.check_output([python_path, get_pip_file], cwd=bin_path)
     print("get_pip", output)
 
-    requirements_file = os.path.join(bin_path, "requirements.txt")
-    write_requirements_file(requirements, requirements_file)
     output = subprocess.check_output([python_path, "-m", "pip", "install", "-r", requirements_file], cwd=bin_path)
     print("install requirements_file", output)
 
@@ -256,12 +244,12 @@ def main():
         exit(-1)
     print("Found venv configs:", venv_configs, venv_path)
     py_version = get_py_version_from_str(venv_configs['version'])
-    venv_requirements = parse_venv_requirements(venv_path, py_version)
-    print("Found venv requirements:", venv_requirements)
+    new_requirements_file = get_new_requirements(venv_path, output_path, py_version)
+    print("Found new requirements file:", new_requirements_file)
 
     embed_python_zip_file = fetch_embeddable_python(venv_configs['version'])
     print("Fetch embed python:", embed_python_zip_file)
-    setup_python(embed_python_zip_file, venv_requirements, output_path)
+    setup_python(embed_python_zip_file, new_requirements_file, output_path)
 
     copy_files(include_files, output_path, name, gui)
     gen_launch_file(output_path, name, args)
