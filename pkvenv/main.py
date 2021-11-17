@@ -148,20 +148,24 @@ def setup_python(python_zip_file, requirements_file, output_path):
 
 
 def copy_files(files, output_path, name, is_gui):
-    #pkgs_path = os.path.join(output_path, "pkgs")
-    #pkgs_path = os.path.join(output_path, ".")
-    pkgs_path = output_path
-    if not os.path.exists(pkgs_path):
-        os.mkdir(pkgs_path)
+    # copy include file to pkvenv_package model dir
+    pkvenv_package_path = os.path.join(output_path, "Python", "Lib", "site-packages", "pkvenv_package")
+    if os.path.exists(pkvenv_package_path):
+        shutil.rmtree(pkvenv_package_path, ignore_errors=True)
+    os.makedirs(pkvenv_package_path, exist_ok=True)
+
+    if not os.path.exists(pkvenv_package_path):
+        os.mkdir(pkvenv_package_path)
 
     for file in files:
         if os.path.isfile(file):
-            shutil.copy(file, pkgs_path)
+            shutil.copy(file, pkvenv_package_path)
         elif os.path.isdir(file):
-            shutil.copytree(file, os.path.join(pkgs_path, os.path.basename(file)))
+            shutil.copytree(file, os.path.join(pkvenv_package_path, os.path.basename(file)))
         else:
             print("[Warning] %s file is not a file or dir" % file)
 
+    # copy .exe to root directory
     if is_gui:
         shutil.copy(os.path.join(ROOT_DIR, "launch_gui.exe.py"), os.path.join(output_path, "%s.exe" % name))
     else:
@@ -173,15 +177,25 @@ def zip_files(output_path, name):
     shutil.make_archive(os.path.join(build_path, name), "zip", output_path)
 
 
-def gen_launch_file(output_path, name, args):
+def gen_launch_file(output_path, args):
+    # 创建 pkvenv_main model, 通过运行pkvenv_main model来拉起 pkvenv_package.
+    pkvenv_main_path = os.path.join(output_path, "Python", "Lib", "site-packages", "pkvenv_main")
+    if os.path.exists(pkvenv_main_path):
+        shutil.rmtree(pkvenv_main_path, ignore_errors=True)
+    os.makedirs(pkvenv_main_path, exist_ok=True)
+
     tmp = args.split(":")
     module_name = tmp[0]
     function_name = tmp[1]
 
-    launch_script_file = os.path.join(output_path, "app-script.py")
-    with open(launch_script_file, "w") as f:
-        f.write("import %s%s" % (module_name, os.linesep))
+    main_file = os.path.join(pkvenv_main_path, "__main__.py")
+    with open(main_file, "w") as f:
+        f.write("from pkvenv_package import %s%s" % (module_name, os.linesep))
         f.write("%s.%s()%s" % (module_name, function_name, os.linesep))
+
+    init_file = os.path.join(pkvenv_main_path, "__init__.py")
+    with open(init_file, "w") as f:
+        pass
 
 
 
@@ -253,7 +267,7 @@ def main():
     setup_python(embed_python_zip_file, new_requirements_file, output_path)
 
     copy_files(include_files, output_path, name, gui)
-    gen_launch_file(output_path, name, args)
+    gen_launch_file(output_path, args)
     zip_files(output_path, name)
 
 
