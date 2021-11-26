@@ -1,4 +1,4 @@
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 
 use std::process::{Command, Stdio};
 use std::io::{self, Write};
@@ -12,7 +12,7 @@ const PYTHON_PATH: &str = "Python\\python.exe";
 
 fn main() {
     let status = Command::new(PYTHON_PATH)
-            .args(&["app-script.py"])
+            .args(&["-m", "pkvenv_main"])
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .status()
