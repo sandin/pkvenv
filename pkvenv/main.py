@@ -185,13 +185,14 @@ def gen_launch_file(output_path, args):
     os.makedirs(pkvenv_main_path, exist_ok=True)
 
     tmp = args.split(":")
-    module_name = tmp[0]
+    module_names = tmp[0].split(".")
     function_name = tmp[1]
 
     main_file = os.path.join(pkvenv_main_path, "__main__.py")
+    package_name = "." + ".".join(module_names[0:-1]) if module_names[0:-1] else ""
     with open(main_file, "w") as f:
-        f.write("from pkvenv_package import %s%s" % (module_name, os.linesep))
-        f.write("%s.%s()%s" % (module_name, function_name, os.linesep))
+        f.write("from pkvenv_package%s import %s%s" % (package_name, module_names[-1], os.linesep))
+        f.write("%s.%s()%s" % (module_names[-1], function_name, os.linesep))
 
     init_file = os.path.join(pkvenv_main_path, "__init__.py")
     with open(init_file, "w") as f:
